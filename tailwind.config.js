@@ -20,7 +20,7 @@ export default {
         body: ['"DM Sans"', 'sans-serif'],
       },
       animation: {
-        'marquee': 'marquee 30s linear infinite',
+        'marquee': 'marquee 12s linear infinite',
       },
       keyframes: {
         marquee: {
