@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A0F2C"/>
+      <stop offset="100%" stop-color="#1a1f4c"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect fill="url(#bg)" width="600" height="400" rx="0"/>
+  
+  <!-- Abstract geometric shapes -->
+  <circle cx="480" cy="80" r="140" fill="#2563EB" opacity="0.08"/>
+  <circle cx="120" cy="340" r="100" fill="#F0C040" opacity="0.06"/>
+  <circle cx="350" cy="200" r="200" fill="#2563EB" opacity="0.04"/>
+  
+  <!-- Grid lines -->
+  <line x1="100" y1="0" x2="100" y2="400" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="200" y1="0" x2="200" y2="400" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="300" y1="0" x2="300" y2="400" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="400" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="500" y1="0" x2="500" y2="400" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="80" x2="600" y2="80" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="160" x2="600" y2="160" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="240" x2="600" y2="240" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="320" x2="600" y2="320" stroke="white" stroke-opacity="0.03" stroke-width="1"/>
+  
+  <!-- Book icon -->
+  <g transform="translate(240, 100)">
+    <rect x="20" y="30" width="80" height="100" rx="4" fill="none" stroke="white" stroke-opacity="0.15" stroke-width="2"/>
+    <rect x="30" y="40" width="60" height="5" rx="2" fill="#2563EB" opacity="0.6"/>
+    <rect x="30" y="55" width="50" height="3" rx="1" fill="white" opacity="0.15"/>
+    <rect x="30" y="65" width="55" height="3" rx="1" fill="white" opacity="0.1"/>
+    <rect x="30" y="75" width="40" height="3" rx="1" fill="white" opacity="0.1"/>
+    <rect x="30" y="90" width="60" height="5" rx="2" fill="#F0C040" opacity="0.4"/>
+    <rect x="30" y="105" width="45" height="3" rx="1" fill="white" opacity="0.1"/>
+    <rect x="30" y="115" width="55" height="3" rx="1" fill="white" opacity="0.1"/>
+  </g>
+  
+  <!-- Graduation cap -->
+  <g transform="translate(380, 140)">
+    <polygon points="40,20 80,40 40,60 0,40" fill="#2563EB" opacity="0.5"/>
+    <line x1="40" y1="60" x2="40" y2="85" stroke="#2563EB" stroke-opacity="0.4" stroke-width="2"/>
+    <circle cx="40" cy="88" r="3" fill="#F0C040" opacity="0.6"/>
+  </g>
+  
+  <!-- Star icons scattered -->
+  <text x="150" y="120" font-size="18" fill="#F0C040" opacity="0.3">★</text>
+  <text x="430" y="300" font-size="14" fill="#F0C040" opacity="0.2">★</text>
+  <text x="500" y="180" font-size="12" fill="#2563EB" opacity="0.3">★</text>
+  
+  <!-- Central text -->
+  <text x="300" y="290" text-anchor="middle" fill="white" font-size="32" font-family="system-ui, sans-serif" font-weight="700" opacity="0.9">Akadmix</text>
+  <text x="300" y="320" text-anchor="middle" fill="#2563EB" font-size="13" font-family="system-ui, sans-serif" font-weight="500" opacity="0.8">Excellence in Education</text>
+  
+  <!-- Bottom accent line -->
+  <rect x="240" y="340" width="120" height="3" rx="1.5" fill="url(#accent)" opacity="0.6"/>
+</svg>
