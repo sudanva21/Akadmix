@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, MessageCircle, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Phone, Mail, MessageCircle, Send, CheckCircle2 } from 'lucide-react';
+import { db, serverTimestamp } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
-const FloatingInput = ({ label, id, type = 'text', as = 'input', rows, required = true }) => {
+const FloatingInput = ({ label, id, type = 'text', as = 'input', rows, required = true, value, onChange }) => {
   const [focused, setFocused] = useState(false);
-  const [hasValue, setHasValue] = useState(false);
 
   const Component = as;
 
@@ -12,14 +13,14 @@ const FloatingInput = ({ label, id, type = 'text', as = 'input', rows, required 
     <div className="relative mb-6">
       <Component
         id={id}
+        name={id}
         type={type}
         rows={rows}
         required={required}
+        value={value}
+        onChange={onChange}
         onFocus={() => setFocused(true)}
-        onBlur={(e) => {
-          setFocused(false);
-          setHasValue(e.target.value.length > 0);
-        }}
+        onBlur={() => setFocused(false)}
         className={`w-full bg-gray-50 border-b-2 px-4 py-4 outline-none transition-all duration-300 font-body text-charcoal ${
           focused ? 'border-electric bg-white' : 'border-gray-200'
         }`}
@@ -27,7 +28,7 @@ const FloatingInput = ({ label, id, type = 'text', as = 'input', rows, required 
       <label
         htmlFor={id}
         className={`absolute left-4 transition-all duration-300 font-body pointer-events-none ${
-          focused || hasValue 
+          focused || (value && value.length > 0)
             ? '-top-2 text-xs text-electric font-semibold bg-white/0 px-1' 
             : 'top-4 text-gray-400 text-base'
         }`}
@@ -39,6 +40,42 @@ const FloatingInput = ({ label, id, type = 'text', as = 'input', rows, required 
 };
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    grade: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await addDoc(collection(db, 'contactMessages'), {
+        ...formData,
+        status: 'new',
+        submittedAt: serverTimestamp()
+      });
+      setIsSuccess(true);
+      setFormData({ name: '', phone: '', email: '', grade: '', message: '' });
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -65,23 +102,61 @@ const Contact = () => {
           <div className="p-8 md:p-12 lg:p-16">
             <h2 className="font-heading text-3xl font-bold text-navy-900 mb-8">Send a Message</h2>
             
-            <form className="space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                <FloatingInput label="Your Name" id="name" />
-                <FloatingInput label="Phone Number" id="phone" type="tel" />
-              </div>
-              <FloatingInput label="Email Address" id="email" type="email" />
-              <FloatingInput label="Student Grade / Level" id="grade" />
-              <FloatingInput label="Your Message" id="message" as="textarea" rows="4" />
-              
-              <button 
-                type="submit"
-                onClick={(e) => e.preventDefault()}
-                className="w-full bg-electric text-white py-4 mt-4 font-heading font-bold text-lg hover:bg-blue-600 transition-colors flex items-center justify-center rounded uppercase tracking-wider group"
-              >
-                Send Request <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
+            <AnimatePresence mode="wait">
+              {isSuccess ? (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-12"
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                    className="w-20 h-20 bg-electric/10 rounded-full flex items-center justify-center mx-auto mb-6"
+                  >
+                    <CheckCircle2 className="w-10 h-10 text-electric" />
+                  </motion.div>
+                  <h3 className="font-heading text-2xl font-bold text-navy-900 mb-3">Message Sent!</h3>
+                  <p className="text-gray-600 font-body mb-6">We'll get back to you within 24 hours.</p>
+                  <button
+                    onClick={() => setIsSuccess(false)}
+                    className="text-electric font-medium hover:underline font-body"
+                  >
+                    Send another message
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form key="form" onSubmit={handleSubmit} className="space-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                    <FloatingInput label="Your Name" id="name" value={formData.name} onChange={handleChange} />
+                    <FloatingInput label="Phone Number" id="phone" type="tel" value={formData.phone} onChange={handleChange} />
+                  </div>
+                  <FloatingInput label="Email Address" id="email" type="email" value={formData.email} onChange={handleChange} />
+                  <FloatingInput label="Student Grade / Level" id="grade" value={formData.grade} onChange={handleChange} />
+                  <FloatingInput label="Your Message" id="message" as="textarea" rows="4" value={formData.message} onChange={handleChange} />
+                  
+                  {error && (
+                    <p className="text-red-500 text-sm font-body">{error}</p>
+                  )}
+
+                  <button 
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-electric text-white py-4 mt-4 font-heading font-bold text-lg hover:bg-blue-600 disabled:bg-electric/50 transition-colors flex items-center justify-center rounded uppercase tracking-wider group"
+                  >
+                    {isSubmitting ? (
+                      <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ repeat: Infinity, duration: 1 }}>
+                        Sending...
+                      </motion.span>
+                    ) : (
+                      <>Send Request <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" /></>
+                    )}
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Right: Contact Details */}
@@ -97,7 +172,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Main Center</h4>
-                  <p className="text-gray-400">14 Sector Road, Tech City<br/>State, 100010</p>
+                  <p className="text-gray-400">Anand Talkies 1st Main,<br/>Adi Jambav Nagar, Gokak,<br/>Karnataka 591307</p>
                   <p className="text-sm text-electric mt-2">Open: 10:00 AM - 8:00 PM</p>
                 </div>
               </div>
@@ -108,8 +183,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-lg mb-1">Phone Enquiries</h4>
-                  <p className="text-gray-400">+1 (800) 123-4567</p>
-                  <p className="text-gray-400">+1 (800) 987-6543</p>
+                  <p className="text-gray-400">+91 84970 90712</p>
                 </div>
               </div>
 
@@ -127,7 +201,9 @@ const Contact = () => {
 
             {/* WhatsApp CTA */}
             <a 
-              href="#"
+              href="https://wa.me/918497090712"
+              target="_blank"
+              rel="noopener noreferrer"
               className="relative z-10 w-full bg-[#25D366] text-white py-4 font-heading font-bold text-lg hover:bg-[#20bd5a] transition-colors flex items-center justify-center rounded"
             >
               <MessageCircle className="w-6 h-6 mr-2" /> Chat with us on WhatsApp
@@ -137,20 +213,19 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Map Placeholder */}
-      <section className="h-[400px] w-full relative bg-gray-200 overflow-hidden">
-        {/* Abstract Map Visual */}
-        <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="font-heading font-bold text-gray-500 text-xl">[ Interactive Map Placeholder ]</p>
-              <p className="font-body text-gray-400 mt-2">Google Maps Embed will render here.</p>
-            </div>
-            
-            {/* Some CSS grid lines to fake a map feel */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-electric/5 rounded-full blur-3xl pointer-events-none"></div>
-        </div>
+      {/* Live Google Map */}
+      <section className="h-[400px] w-full relative overflow-hidden">
+        <iframe
+          title="Akadmix Location - Open Minds, Gokak"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1920!2d74.821119!3d16.166040!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc0f8a4a0000001%3A0x1!2zMTbCsDA5JzU3LjciTiA3NMKwNDknMTYuMCJF!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          className="absolute inset-0 w-full h-full"
+        />
       </section>
 
     </motion.div>

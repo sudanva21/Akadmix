@@ -15,6 +15,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Enroll from './pages/Enroll';
 import BlogPost from './pages/BlogPost';
+import AdminPage from './pages/admin/AdminPage';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -43,17 +44,37 @@ const AnimatedRoutes = () => {
   );
 };
 
+const AppLayout = () => {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
+
+  if (isAdmin) {
+    return (
+      <>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/admin" element={<AdminPage />} />
+        </Routes>
+      </>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <ScrollToTop />
+      <Navbar />
+      <main className="flex-grow">
+        <AnimatedRoutes />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 function App() {
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
-        <ScrollToTop />
-        <Navbar />
-        <main className="flex-grow">
-          <AnimatedRoutes />
-        </main>
-        <Footer />
-      </div>
+      <AppLayout />
     </BrowserRouter>
   );
 }

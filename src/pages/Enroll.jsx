@@ -2,11 +2,24 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Navigation2 } from 'lucide-react';
 import { OFFLINE_BATCHES, ONLINE_PROGRAMS } from '../data/mockData';
+import { db, serverTimestamp } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const Enroll = () => {
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  const [formData, setFormData] = useState({
+    studentName: '',
+    parentName: '',
+    phone: '',
+    email: '',
+    grade: '',
+    preferredTiming: '',
+    notes: ''
+  });
 
   // Combine programs for easy mapping
   const allPrograms = [
@@ -14,14 +27,29 @@ const Enroll = () => {
     ...ONLINE_PROGRAMS.map(p => ({ ...p, type: 'Online Program', group: p.title }))
   ];
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate network request
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setError('');
+
+    try {
+      await addDoc(collection(db, 'enrollments'), {
+        ...formData,
+        programType: selectedProgram.type,
+        programName: selectedProgram.group,
+        status: 'new',
+        submittedAt: serverTimestamp()
+      });
       setIsSuccess(true);
-    }, 1500);
+    } catch (err) {
+      console.error('Error submitting enrollment:', err);
+      setError('Something went wrong. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,29 +135,29 @@ const Enroll = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-charcoal mb-2">Student Name *</label>
-                      <input required type="text" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
+                      <input required type="text" name="studentName" value={formData.studentName} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-charcoal mb-2">Parent/Guardian Name *</label>
-                      <input required type="text" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
+                      <input required type="text" name="parentName" value={formData.parentName} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-charcoal mb-2">Phone Number *</label>
-                      <input required type="tel" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
+                      <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-charcoal mb-2">Email Address *</label>
-                      <input required type="email" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
+                      <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-charcoal mb-2">Grade / Standard *</label>
-                      <select required className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors appearance-none">
+                      <select required name="grade" value={formData.grade} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors appearance-none">
                         <option value="">Select Grade</option>
                         <option value="LKG-UKG">LKG / UKG</option>
                         <option value="1-5">1st - 5th Standard</option>
@@ -139,19 +167,23 @@ const Enroll = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-charcoal mb-2">Preferred Timing</label>
-                      <input type="text" placeholder="e.g. Evenings after 5 PM" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
+                      <input type="text" name="preferredTiming" value={formData.preferredTiming} onChange={handleChange} placeholder="e.g. Evenings after 5 PM" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors" />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-charcoal mb-2">Additional Notes / Requirements</label>
-                    <textarea rows="4" className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors resize-none"></textarea>
+                    <textarea rows="4" name="notes" value={formData.notes} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors resize-none"></textarea>
                   </div>
+
+                  {error && (
+                    <p className="text-red-500 text-sm font-body">{error}</p>
+                  )}
 
                   <button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full bg-electric text-white py-4 rounded font-heading font-bold text-lg hover:bg-blue-600 transition-colors flex justify-center items-center overflow-hidden relative"
+                    className="w-full bg-electric text-white py-4 rounded font-heading font-bold text-lg hover:bg-blue-600 disabled:bg-electric/50 transition-colors flex justify-center items-center overflow-hidden relative"
                   >
                     {isSubmitting ? (
                       <motion.div 

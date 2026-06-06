@@ -1,13 +1,37 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BLOG_POSTS } from '../data/mockData';
-import { Clock, User } from 'lucide-react';
+import { Clock, User, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { db, serverTimestamp } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const CATEGORIES = ['All', ...new Set(BLOG_POSTS.map(p => p.category))];
 
 const Blog = () => {
   const [activeCategory, setActiveCategory] = useState('All');
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim()) return;
+    setNewsletterLoading(true);
+    try {
+      await addDoc(collection(db, 'newsletterSubscribers'), {
+        email: newsletterEmail.trim(),
+        source: 'blog_sidebar',
+        subscribedAt: serverTimestamp()
+      });
+      setNewsletterSubmitted(true);
+      setNewsletterEmail('');
+    } catch (err) {
+      console.error('Newsletter subscribe error:', err);
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   const filteredPosts = activeCategory === 'All' 
     ? BLOG_POSTS 
@@ -124,10 +148,17 @@ const Blog = () => {
                   <div className="mt-auto pt-6 border-t border-gray-200">
                     <p className="font-heading font-medium text-electric mb-2 text-sm uppercase tracking-widest">Newsletter</p>
                     <h4 className="font-heading text-xl font-bold mb-4">Never miss an update.</h4>
-                    <div className="flex w-full">
-                      <input type="email" placeholder="Your email address" className="bg-gray-50 border border-gray-200 px-4 py-3 w-full focus:outline-none focus:border-electric" />
-                      <button className="bg-navy-900 text-white px-4 font-medium hover:bg-electric transition-colors">→</button>
-                    </div>
+                    {newsletterSubmitted ? (
+                      <div className="flex items-center gap-2 text-emerald-600 font-body text-sm">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Subscribed successfully!</span>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleNewsletterSubmit} className="flex w-full">
+                        <input type="email" value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="Your email address" required className="bg-gray-50 border border-gray-200 px-4 py-3 w-full focus:outline-none focus:border-electric" />
+                        <button type="submit" disabled={newsletterLoading} className="bg-navy-900 text-white px-4 font-medium hover:bg-electric disabled:bg-gray-400 transition-colors">{newsletterLoading ? '...' : '→'}</button>
+                      </form>
+                    )}
                   </div>
                 </div>
 

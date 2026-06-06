@@ -47,11 +47,11 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-gray-400 font-body">
               <li className="flex items-start space-x-3">
                  <span className="mt-0.5">✦</span>
-                 <span>India</span>
+                 <span>Gokak, Karnataka 591307</span>
               </li>
               <li className="flex items-start space-x-3">
                  <span className="mt-0.5">✦</span>
-                 <span>+1 (800) 123-4567</span>
+                 <span>+91 84970 90712</span>
               </li>
               <li className="flex items-start space-x-3">
                  <span className="mt-0.5">✦</span>
